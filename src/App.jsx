@@ -9,15 +9,26 @@ import {
   Upload,
   Skeleton,
   Switch,
+  Rate,
+  Radio,
+  Carousel,
 } from "antd";
+import {
+  SettingOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import TextArea from "antd/lib/input/TextArea";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 const { Meta } = Card;
 
 function App() {
   const [flowers, setFlowers] = useState([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true); // State to handle initial loading state
+  const [loading, setLoading] = useState(true);
+  const [tags, setTags] = useState(["House Plants"]);
+  const carouselRefs = useRef({});
+  const intervalRefs = useRef({});
 
   const onFinish = async (values) => {
     console.log(values);
@@ -26,17 +37,17 @@ function App() {
       title: values.title,
       price: values.price,
       main_image: values.main_image.file.response.image_url.url,
+      detailed_images: [
+        values.detaled_image_1.file.response.image_url.url,
+        values.detaled_image_2.file.response.image_url.url,
+        values.detaled_image_3.file.response.image_url.url,
+        values.detaled_image_4.file.response.image_url.url,
+      ],
       discount: values.discount,
       discount_price: values.discount_price,
-      detailed_images: [
-        "https://www.coartsinnovation.com/wp-content/uploads/2021/05/Artificial-Topiary-CAJM-7136.png",
-        "https://www.coartsinnovation.com/wp-content/uploads/2021/05/Artificial-Topiary-CAJM-7136.png",
-        "https://cdn11.bigcommerce.com/s-2mpfm/images/stencil/640w/products/169512/743847/5965__41958.1630728740.jpg?c=2",
-        "https://cdn11.bigcommerce.com/s-2mpfm/images/stencil/640w/products/169089/743279/5493__27309.1630683935.jpg?c=2",
-      ],
-      rate: 0,
-      views: 0,
-      tags: [],
+      rate: values.rate,
+      sold: values.sold,
+      tags: [values.tags],
       comments: [values.comments],
       short_description: values.shortDescription,
       description: values.description,
@@ -47,12 +58,15 @@ function App() {
       {
         method: "POST",
         headers: {
-          Authorization: "Bearer YOUR_ACCESS_TOKEN",
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjY0YzAyZDEwMzIwNjk5ODJkYmJhOTRlZiIsIm5hbWUiOiJUZXN0Iiwic3VybmFtZSI6IlRlc3RvdiIsInBhc3N3b3JkIjoidGVzdF90ZXN0IiwicGVybWlzc2lvbiI6eyJjcmVhdGUiOmZhbHNlLCJ1cGRhdGUiOmZhbHNlLCJkZWxldGUiOmZhbHNlLCJyZWFkIjp0cnVlfSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsInVzZXJfdHlwZSI6Im9ic2VydmVyIiwiY3JlYXRlX3Bvc3RfbGltaXQiOjAsImNyZWF0ZV9hY2NvdW50X2xpbWl0IjowLCJjcmVhdGVfcGxhbnRfbGltaXQiOjAsImhhc2h0YWdzIjpbXSwid2lzaGxpc3QiOltdLCJjcmVhdGVkX2F0IjoiMjAyMy0wNy0yNVQyMDoxNDowOC4wNDhaIiwiX192IjowfSwiaWF0IjoxNjkwMzE2MjY3fQ.Lwf1q47UoD5eUzFp4IXjgCD05xvnDrojZ5lST9mrMfc",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(shouldUpload),
       }
     );
+
+    setFlowers([...flowers, shouldUpload]);
 
     setOpen(false);
   };
@@ -66,10 +80,9 @@ function App() {
       const data = await response.json();
 
       setTimeout(() => {
-        // Simulate delay for skeleton loaders
         setFlowers(data.data);
-        setLoading(false); // Set loading state to false once data is fetched
-      }, 1000); // Adjust the delay as needed
+        setLoading(false);
+      }, 1000);
     };
 
     fetchData();
@@ -77,6 +90,47 @@ function App() {
 
   const onSwitch = (checked) => {
     console.log(`switch to ${checked}`);
+  };
+
+  const onDelete = async (_id) => {
+    console.log(_id);
+
+    await fetch(
+      `http://localhost:8080/api/user/blog?access_token=64bebc1e2c6d3f056a8c85b7`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjY0YmRmM2ZiZWNlMDlmZTc4MDU1MGE5MCIsIm5hbWUiOiJBc2FkYmVrIGRldi10ZXN0Iiwic3VybmFtZSI6IkFiZHV2b2l0b3YiLCJwYXNzd29yZCI6Ijk5NTMyMTAyNUFhIiwicGVybWlzc2lvbiI6eyJjcmVhdGUiOmZhbHNlLCJ1cGRhdGUiOmZhbHNlLCJkZWxldGUiOmZhbHNlLCJyZWFkIjp0cnVlfSwiZW1haWwiOiJhc2FkYmVrYWJkdXZvaXRvdjNAZ21haWwuY29tIiwidXNlcl90eXBlIjoib2JzZXJ2ZXIiLCJjcmVhdGVfcG9zdF9saW1pdCI6MCwiY3JlYXRlX2FjY291bnRfbGltaXQiOjAsImNyZWF0ZV9wbGFudF9saW1pdCI6MCwiaGFzaHRhZ3MiOltdLCJ3aXNobGlzdCI6W10sImNyZWF0ZWRfYXQiOiIyMDIzLTA3LTI0VDAzOjQ2OjAzLjg2M1oiLCJfX3YiOjB9LCJpYXQiOjE2OTAxNzA1Mzl9.wq6N_PqwMDQNeHaS0tXJgt7Oo90Up1CsoXW8nHPGCLs",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    setFlowers((prevFlowers) =>
+      prevFlowers.filter((flower) => flower._id !== _id)
+    );
+  };
+
+  const tagChange = (e) => {
+    setTags(e.target.value);
+  };
+
+  const handleMouseEnter = (id) => {
+    if (carouselRefs.current[id]) {
+      intervalRefs.current[id] = setInterval(() => {
+        carouselRefs.current[id].next();
+      }, 2000);
+    }
+  };
+
+  const handleMouseLeave = (id) => {
+    if (intervalRefs.current[id]) {
+      clearInterval(intervalRefs.current[id]);
+    }
+    if (carouselRefs.current[id]) {
+      carouselRefs.current[id].goTo(0);
+    }
   };
 
   return (
@@ -121,6 +175,76 @@ function App() {
               <Button>Upload</Button>
             </Upload>
           </Form.Item>
+          {/* Detailed images upload */}
+          <Form.Item
+            label="Detailed_img_1"
+            name="detailed_img_1"
+            rules={[
+              {
+                required: true,
+                message: "Please upload your image!",
+              },
+            ]}
+          >
+            <Upload
+              name="image"
+              action="http://localhost:8080/api/upload?access_token=64bebc1e2c6d3f056a8c85b7"
+            >
+              <Button>Upload</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            label="Detailed_img_2"
+            name="detailed_img_2"
+            rules={[
+              {
+                required: true,
+                message: "Please upload your image!",
+              },
+            ]}
+          >
+            <Upload
+              name="image"
+              action="http://localhost:8080/api/upload?access_token=64bebc1e2c6d3f056a8c85b7"
+            >
+              <Button>Upload</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            label="Detailed_img_3"
+            name="detailed_img_3"
+            rules={[
+              {
+                required: true,
+                message: "Please upload your image!",
+              },
+            ]}
+          >
+            <Upload
+              name="image"
+              action="http://localhost:8080/api/upload?access_token=64bebc1e2c6d3f056a8c85b7"
+            >
+              <Button>Upload</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            label="Detailed_img_4"
+            name="detailed_img_4"
+            rules={[
+              {
+                required: true,
+                message: "Please upload your image!",
+              },
+            ]}
+          >
+            <Upload
+              name="image"
+              action="http://localhost:8080/api/upload?access_token=64bebc1e2c6d3f056a8c85b7"
+            >
+              <Button>Upload</Button>
+            </Upload>
+          </Form.Item>
+
           {/* Price */}
           <Form.Item
             label="Price"
@@ -135,17 +259,8 @@ function App() {
             <InputNumber />
           </Form.Item>
           {/* discount */}
-          <Form.Item
-            label="Discount"
-            name="discount"
-            rules={[
-              {
-                required: true,
-                message: "Please input your price!",
-              },
-            ]}
-          >
-            <Switch defaultChecked onChange={onSwitch} />
+          <Form.Item label="Discount" name="discount" valuePropName="checked">
+            <Switch onChange={onSwitch} />
           </Form.Item>
           {/* discount price */}
           <Form.Item
@@ -199,6 +314,49 @@ function App() {
           >
             <TextArea rows={4} />
           </Form.Item>
+          {/* Rate */}
+          <Form.Item
+            label="Rate"
+            name="rate"
+            rules={[
+              {
+                required: true,
+                message: "Please rate the flower!",
+              },
+            ]}
+          >
+            <Rate />
+          </Form.Item>
+          {/* Tags */}
+          <Form.Item
+            label="Tags"
+            name="tags"
+            rules={[
+              {
+                required: true,
+                message: "Please choose the tag!",
+              },
+            ]}
+          >
+            <Radio.Group value={tags} onChange={tagChange}>
+              <Radio.Button value="House Plants">House Plants</Radio.Button>
+              <Radio.Button value="Potter Plants">Potter Plants</Radio.Button>
+              <Radio.Button value="Small Plants">Small Plants</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          {/* Sold */}
+          <Form.Item
+            label="Sold"
+            name="sold"
+            rules={[
+              {
+                required: true,
+                message: "Please input your sold number!",
+              },
+            ]}
+          >
+            <InputNumber />
+          </Form.Item>
           {/* buttons to create */}
           <Form.Item>
             <Button danger onClick={() => setOpen(false)}>
@@ -219,31 +377,66 @@ function App() {
       </div>
       <div className="box">
         {loading ? (
-          // Render skeleton cards while loading
           <>
             <Skeleton active paragraph={{ rows: 1 }} />
             <Skeleton active paragraph={{ rows: 1 }} />
             <Skeleton active paragraph={{ rows: 1 }} />
           </>
         ) : (
-          // Render actual flower cards once data is loaded
-          flowers.map(({ _id, main_image, title, short_description }) => (
-            <Card
-              key={_id}
-              hoverable
-              style={{
-                width: 440,
-              }}
-              cover={<img alt="example" src={main_image} />}
-            >
-              <Meta
-                title={title}
-                description={short_description}
-                // description={description}
-                // discount_price={discount_price}
-              />
-            </Card>
-          ))
+          flowers.map(
+            ({
+              _id,
+              main_image,
+              title,
+              short_description,
+              discount,
+              discount_price,
+              comments,
+              description,
+              detailed_images,
+              rate,
+              tags,
+              sold,
+            }) => (
+              <Card
+                key={_id}
+                hoverable
+                style={{
+                  width: 440,
+                }}
+                cover={
+                  <div
+                    onMouseEnter={() => handleMouseEnter(_id)}
+                    onMouseLeave={() => handleMouseLeave(_id)}
+                  >
+                    <Carousel
+                      dots={false}
+                      ref={(el) => (carouselRefs.current[_id] = el)}
+                    >
+                      {detailed_images.map((image, index) => (
+                        <img
+                          alt={`detailed-${index}`}
+                          src={image}
+                          key={index}
+                        />
+                      ))}
+                    </Carousel>
+                  </div>
+                }
+              >
+                <Meta title={title} description={short_description} />
+                <div className="card-info">
+                  <p>Discount: {discount ? "Yes" : "No"}</p>
+                  {discount && <p>Discount Price: ${discount_price}</p>}
+                  <p>Comments: {comments}</p>
+                  <p>Description: {description}</p>
+                  <p>Rate: {rate}</p>
+                  <p>Tags: {tags}</p>
+                  <p>Sold: {sold}</p>
+                </div>
+              </Card>
+            )
+          )
         )}
       </div>
     </div>
