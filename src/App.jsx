@@ -1,3 +1,4 @@
+
 import "./App.css";
 import {
   Card,
@@ -36,21 +37,21 @@ function App() {
     const shouldUpload = {
       title: values.title,
       price: values.price,
-      main_image: values.main_image.file.response.image_url.url,
-      detailed_images: [
-        values.detaled_image_1.file.response.image_url.url,
-        values.detaled_image_2.file.response.image_url.url,
-        values.detaled_image_3.file.response.image_url.url,
-        values.detaled_image_4.file.response.image_url.url,
-      ],
       discount: values.discount,
       discount_price: values.discount_price,
-      rate: values.rate,
-      sold: values.sold,
-      tags: [values.tags],
-      comments: [values.comments],
-      short_description: values.shortDescription,
+      main_image: values.main_image.file.response.image_url.url,
+      detailed_images: [
+        values.detailed_img_1.file.response.image_url.url,
+        values.detailed_img_2.file.response.image_url.url,
+        values.detailed_img_3.file.response.image_url.url,
+        values.detailed_img_4.file.response.image_url.url,
+      ],
       description: values.description,
+      short_description: values.shortDescription,
+      comments: [values.comments],
+      rate: values.rate,
+      tags: [values.tags],
+      sold: values.sold,
     };
 
     await fetch(
@@ -414,15 +415,18 @@ function App() {
                       ref={(el) => (carouselRefs.current[_id] = el)}
                     >
                       {detailed_images.map((image, index) => (
-                        <img
-                          alt={`detailed-${index}`}
-                          src={image}
-                          key={index}
-                        />
+                        <div key={index}>
+                          <img alt={`detailed-${index}`} src={image} />
+                        </div>
                       ))}
                     </Carousel>
                   </div>
                 }
+                actions={[
+                  <SettingOutlined />,
+                  <EditOutlined />,
+                  <DeleteOutlined onClick={() => onDelete(_id)} />,
+                ]}
               >
                 <Meta title={title} description={short_description} />
                 <div className="card-info">
